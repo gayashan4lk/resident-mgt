@@ -18,20 +18,30 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    // Auto-dismiss alerts after 5 seconds
-    const alerts = document.querySelectorAll('.alert');
-    alerts.forEach(alert => {
-        setTimeout(() => {
-            const closeButton = alert.querySelector('.btn-close');
-            if (closeButton) {
-                closeButton.click();
-            }
-        }, 5000);
-    });
-
+    // Initialize toasts
+    initToasts();
+    
     // Setup delete confirmation modal
     setupDeleteConfirmation();
 });
+
+/**
+ * Initialize Bootstrap toasts
+ */
+function initToasts() {
+    // Get all toast elements
+    const toastElList = document.querySelectorAll('.toast');
+    
+    // Create toast instances with auto-hide enabled
+    const toastList = Array.from(toastElList).map(toastEl => {
+        const toast = new bootstrap.Toast(toastEl, {
+            autohide: true,
+            delay: 5000
+        });
+        toast.show();
+        return toast;
+    });
+}
 
 /**
  * Initialize delete confirmation modal handlers
@@ -48,22 +58,16 @@ function setupDeleteConfirmation() {
     const modal = new bootstrap.Modal(deleteModal);
     
     // Setup event handlers for all delete buttons
-    document.querySelectorAll('a.btn-danger').forEach(btn => {
-        // Skip if it's the confirmation button in the modal
-        if (btn.classList.contains('confirm-delete')) return;
-        
+    document.querySelectorAll('.delete-btn').forEach(btn => {
         // Override the default click behavior
         btn.addEventListener('click', function(e) {
-            e.preventDefault();
-            
             // Extract details from the button
-            const href = this.getAttribute('href');
-            const id = href.split('=')[1] || '';
+            const id = this.getAttribute('data-id');
             const fullName = this.getAttribute('data-name') || 'this resident';
             
             // Update modal with resident info
             residentNameElement.textContent = fullName;
-            confirmDeleteBtn.setAttribute('href', href);
+            confirmDeleteBtn.setAttribute('href', `delete.php?id=${id}`);
             
             // Show the modal
             modal.show();

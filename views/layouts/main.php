@@ -16,9 +16,69 @@
         .table th, .table td {
             vertical-align: middle;
         }
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1050;
+        }
+        .toast {
+            opacity: 0;
+            animation: fadeIn 0.3s ease forwards;
+            margin-bottom: 10px;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .toast-progress {
+            width: 100%;
+            height: 3px;
+            background: rgba(255, 255, 255, 0.2);
+            position: absolute;
+            bottom: 0;
+            left: 0;
+        }
+        .toast-progress-bar {
+            height: 100%;
+            background: rgba(255, 255, 255, 0.7);
+            width: 100%;
+            animation: countdown 5s linear forwards;
+        }
+        @keyframes countdown {
+            from { width: 100%; }
+            to { width: 0%; }
+        }
     </style>
 </head>
 <body>
+    <!-- Toast container for notifications -->
+    <div class="toast-container">
+        <?php if(isset($success_message)): ?>
+            <div class="toast align-items-center text-white bg-success border-0" role="alert" aria-live="assertive" aria-atomic="true">
+                <div class="d-flex">
+                    <div class="toast-body">
+                        <i class="bi bi-check-circle-fill me-2"></i><?= $success_message ?>
+                    </div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                </div>
+                <div class="toast-progress"><div class="toast-progress-bar"></div></div>
+            </div>
+        <?php endif; ?>
+        
+        <?php if(isset($error_message)): ?>
+            <div class="toast align-items-center text-white bg-danger border-0" role="alert" aria-live="assertive" aria-atomic="true">
+                <div class="d-flex">
+                    <div class="toast-body">
+                        <i class="bi bi-exclamation-triangle-fill me-2"></i><?= $error_message ?>
+                    </div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                </div>
+                <div class="toast-progress"><div class="toast-progress-bar"></div></div>
+            </div>
+        <?php endif; ?>
+    </div>
+
     <nav class="navbar navbar-expand-lg navbar-dark bg-primary mb-4">
         <div class="container">
             <a class="navbar-brand" href="index.php"><i class="bi bi-houses-fill me-2"></i><?= APP_NAME ?></a>
@@ -26,20 +86,6 @@
     </nav>
 
     <div class="container">
-        <?php if(isset($success_message)): ?>
-            <div class="alert alert-success alert-dismissible fade show" role="alert">
-                <i class="bi bi-check-circle-fill me-2"></i><?= $success_message ?>
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            </div>
-        <?php endif; ?>
-
-        <?php if(isset($error_message)): ?>
-            <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                <i class="bi bi-exclamation-triangle-fill me-2"></i><?= $error_message ?>
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            </div>
-        <?php endif; ?>
-
         <!-- Main Content -->
         <?php include($content); ?>
     </div>
