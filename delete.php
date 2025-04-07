@@ -2,13 +2,8 @@
 // Start session for flash messages
 session_start();
 
-// Database connection
-$conn = mysqli_connect('localhost', 'root', '', 'resident_database');
-
-// Check connection
-if (!$conn) {
-    die("Connection failed: " . mysqli_connect_error());
-}
+// Include database connection
+require_once 'db_connect.php';
 
 // Check if ID is provided
 if (isset($_GET['id']) && !empty($_GET['id'])) {

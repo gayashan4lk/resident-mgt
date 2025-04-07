@@ -18,13 +18,8 @@
 // Start session for flash messages
 session_start();
 
-// Database connection
-$conn = mysqli_connect('localhost', 'root', '', 'resident_database');
-
-// Check connection
-if (!$conn) {
-    die("Connection failed: " . mysqli_connect_error());
-}
+// Include database connection
+require_once 'db_connect.php';
 
 // Initialize message variables from session
 $success_message = isset($_SESSION['success_message']) ? $_SESSION['success_message'] : null;
@@ -457,7 +452,7 @@ HTML;
 		</div>
 	</div>
 
-	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.5/dist/js/bootstrap.bundle.min.js" integrity="sha384-k6d4wzSIapyDyv1kpU366/PK5hCdSbCRGRCMv+eplOQJWyd1fbcAu9OCUj5zNLiq" crossorigin="anonymous"></script>
+	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.5/dist/js/bootstrap.bundle.min.js" integrity="sha384-k6d4wzSIapyDyv1kpU366/PK5hCdSbCRGRCMv+eplOQJWyd1MZ8t5HZApcHrRKUc4W0kG879m7" crossorigin="anonymous"></script>
 	<script>
 	// Simple search functionality
 	document.getElementById('searchInput').addEventListener('keyup', function() {
