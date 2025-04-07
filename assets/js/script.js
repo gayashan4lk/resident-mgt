@@ -67,7 +67,7 @@ function setupDeleteConfirmation() {
             
             // Update modal with resident info
             residentNameElement.textContent = fullName;
-            confirmDeleteBtn.setAttribute('href', `delete.php?id=${id}`);
+            confirmDeleteBtn.setAttribute('href', `index.php?action=delete&id=${id}`);
             
             // Show the modal
             modal.show();
