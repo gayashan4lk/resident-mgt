@@ -18,3 +18,8 @@ Database:
 Database name: resident_database
 Tables:
 - residents
+
+Additional Instructions:
+Use Bootstrap for styling and layout.
+Use Bootstrap Icons for icons.
+Use 'mysqli_connect' to connect to the database.
