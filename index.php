@@ -41,39 +41,73 @@ if (!isset($_SESSION['form_token'])) {
 
 // Form submission processing
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    // Verify form token to prevent duplicate submissions
-    if (!isset($_POST['form_token']) || $_POST['form_token'] !== $_SESSION['form_token']) {
-        $_SESSION['error_message'] = "Invalid form submission or form already submitted.";
+    // Check if we're updating an existing resident
+    if (isset($_POST['id']) && !empty($_POST['id'])) {
+        // Get form data
+        $id = filter_var($_POST['id'], FILTER_VALIDATE_INT);
+        $full_name = mysqli_real_escape_string($conn, $_POST['full_name']);
+        $dob = mysqli_real_escape_string($conn, $_POST['dob']);
+        $nic = mysqli_real_escape_string($conn, $_POST['nic']);
+        $address = mysqli_real_escape_string($conn, $_POST['address']);
+        $phone = mysqli_real_escape_string($conn, $_POST['phone']);
+        $email = mysqli_real_escape_string($conn, $_POST['email']);
+        $occupation = mysqli_real_escape_string($conn, $_POST['occupation']);
+        $gender = mysqli_real_escape_string($conn, $_POST['gender']);
+        
+        // Update query with prepared statement
+        $stmt = $conn->prepare("UPDATE residents SET full_name=?, dob=?, nic=?, address=?, phone=?, email=?, occupation=?, gender=? WHERE id=?");
+        $stmt->bind_param("ssssssssi", $full_name, $dob, $nic, $address, $phone, $email, $occupation, $gender, $id);
+        
+        if ($stmt->execute()) {
+            $_SESSION['success_message'] = "Resident updated successfully!";
+        } else {
+            $_SESSION['error_message'] = "Error: " . $stmt->error;
+        }
+        
+        $stmt->close();
+        
+        // Redirect to prevent form resubmission
+        header("Location: " . $_SERVER['PHP_SELF']);
+        exit();
+    } 
+    // Handle adding a new resident
+    else {
+        // Verify form token to prevent duplicate submissions
+        if (!isset($_POST['form_token']) || $_POST['form_token'] !== $_SESSION['form_token']) {
+            $_SESSION['error_message'] = "Invalid form submission or form already submitted.";
+            header("Location: " . $_SERVER['PHP_SELF']);
+            exit();
+        }
+        
+        // Get form data
+        $full_name = mysqli_real_escape_string($conn, $_POST['full_name']);
+        $dob = mysqli_real_escape_string($conn, $_POST['dob']);
+        $nic = mysqli_real_escape_string($conn, $_POST['nic']);
+        $address = mysqli_real_escape_string($conn, $_POST['address']);
+        $phone = mysqli_real_escape_string($conn, $_POST['phone']);
+        $email = mysqli_real_escape_string($conn, $_POST['email']);
+        $occupation = mysqli_real_escape_string($conn, $_POST['occupation']);
+        $gender = mysqli_real_escape_string($conn, $_POST['gender']);
+        
+        // Insert with prepared statement
+        $stmt = $conn->prepare("INSERT INTO residents (full_name, dob, nic, address, phone, email, occupation, gender) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
+        $stmt->bind_param("ssssssss", $full_name, $dob, $nic, $address, $phone, $email, $occupation, $gender);
+        
+        if ($stmt->execute()) {
+            $_SESSION['success_message'] = "Resident added successfully!";
+        } else {
+            $_SESSION['error_message'] = "Error: " . $stmt->error;
+        }
+        
+        $stmt->close();
+        
+        // Generate a new token after submission
+        $_SESSION['form_token'] = md5(uniqid(mt_rand(), true));
+        
+        // Redirect to prevent form resubmission
         header("Location: " . $_SERVER['PHP_SELF']);
         exit();
     }
-    
-    // Get form data
-    $full_name = mysqli_real_escape_string($conn, $_POST['full_name']);
-    $dob = mysqli_real_escape_string($conn, $_POST['dob']);
-    $nic = mysqli_real_escape_string($conn, $_POST['nic']);
-    $address = mysqli_real_escape_string($conn, $_POST['address']);
-    $phone = mysqli_real_escape_string($conn, $_POST['phone']);
-    $email = mysqli_real_escape_string($conn, $_POST['email']);
-    $occupation = mysqli_real_escape_string($conn, $_POST['occupation']);
-    $gender = mysqli_real_escape_string($conn, $_POST['gender']);
-    
-    // Insert query
-    $sql = "INSERT INTO residents (full_name, dob, nic, address, phone, email, occupation, gender) 
-            VALUES ('$full_name', '$dob', '$nic', '$address', '$phone', '$email', '$occupation', '$gender')";
-    
-    if (mysqli_query($conn, $sql)) {
-        $_SESSION['success_message'] = "Resident added successfully!";
-    } else {
-        $_SESSION['error_message'] = "Error: " . mysqli_error($conn);
-    }
-    
-    // Generate a new token after submission
-    $_SESSION['form_token'] = md5(uniqid(mt_rand(), true));
-    
-    // Redirect to prevent form resubmission
-    header("Location: " . $_SERVER['PHP_SELF']);
-    exit();
 }
 ?>
 
@@ -192,97 +226,223 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 								</thead>
 								<tbody>
 									<?php
-									// Retrieve resident data from database
-									$sql = "SELECT * FROM residents ORDER BY full_name ASC";
-									$result = mysqli_query($conn, $sql);
-									if (mysqli_num_rows($result) > 0) {
+									// Function to generate resident table row
+									function generateResidentRow($row, $rowNum) {
+										$id = (int)$row['id']; // Force integer type for security
+										$fullName = htmlspecialchars($row['full_name']);
+										$nic = htmlspecialchars($row['nic']);
+										$phone = htmlspecialchars($row['phone']);
+										$email = htmlspecialchars($row['email']);
+										$viewModalId = "#viewModal{$id}";
+										$editModalId = "#editModal{$id}";
+										
+										return <<<ROW
+<tr>
+  <th scope='row'>{$rowNum}</th>
+  <td>{$fullName}</td>
+  <td>{$nic}</td>
+  <td>{$phone}</td>
+  <td>{$email}</td>
+  <td class='text-center'>
+    <div class='btn-group btn-group-sm' role='group' aria-label='Resident actions'>
+      <button type='button' class='btn btn-info' data-bs-toggle='modal' data-bs-target='{$viewModalId}' title='View Details'>
+        <i class='bi bi-eye'></i>
+      </button>
+      <button type='button' class='btn btn-primary' data-bs-toggle='modal' data-bs-target='{$editModalId}' title='Edit Resident'>
+        <i class='bi bi-pencil'></i>
+      </button>
+      <button type='button' class='btn btn-danger' onclick="deleteResident({$id}, '{$fullName}')" title='Delete Resident'>
+        <i class='bi bi-trash'></i>
+      </button>
+    </div>
+  </td>
+</tr>
+ROW;
+									}
+
+									// Function to generate resident details modal
+									function generateResidentModal($row) {
+										$id = (int)$row['id']; // Force integer type for security
+										$fullName = htmlspecialchars($row['full_name']);
+										$dob = htmlspecialchars($row['dob']);
+										$nic = htmlspecialchars($row['nic']);
+										$gender = htmlspecialchars($row['gender']);
+										$address = htmlspecialchars($row['address']);
+										$phone = htmlspecialchars($row['phone']);
+										$email = htmlspecialchars($row['email']);
+										$occupation = empty($row['occupation']) ? 'Not specified' : htmlspecialchars($row['occupation']);
+										$formattedDate = date('F j, Y', strtotime($row['registered_date']));
+										
+										$modalId = "viewModal{$id}";
+										$modalLabelId = "viewModalLabel{$id}";
+										
+										return <<<HTML
+<div class='modal fade' id='{$modalId}' tabindex='-1' aria-labelledby='{$modalLabelId}' aria-hidden='true'>
+  <div class='modal-dialog modal-lg'>
+    <div class='modal-content'>
+      <div class='modal-header bg-info text-white'>
+        <h5 class='modal-title' id='{$modalLabelId}'><i class='bi bi-person-badge'></i> {$fullName}'s Details</h5>
+        <button type='button' class='btn-close' data-bs-dismiss='modal' aria-label='Close'></button>
+      </div>
+      <div class='modal-body'>
+        <div class='row'>
+          <div class='col-md-6 mb-3'>
+            <h6><i class='bi bi-person'></i> Full Name</h6>
+            <p>{$fullName}</p>
+          </div>
+          <div class='col-md-6 mb-3'>
+            <h6><i class='bi bi-calendar-date'></i> Date of Birth</h6>
+            <p>{$dob}</p>
+          </div>
+        </div>
+        <div class='row'>
+          <div class='col-md-6 mb-3'>
+            <h6><i class='bi bi-card-text'></i> NIC</h6>
+            <p>{$nic}</p>
+          </div>
+          <div class='col-md-6 mb-3'>
+            <h6><i class='bi bi-gender-ambiguous'></i> Gender</h6>
+            <p>{$gender}</p>
+          </div>
+        </div>
+        <div class='row'>
+          <div class='col-12 mb-3'>
+            <h6><i class='bi bi-geo-alt'></i> Address</h6>
+            <p>{$address}</p>
+          </div>
+        </div>
+        <div class='row'>
+          <div class='col-md-6 mb-3'>
+            <h6><i class='bi bi-telephone'></i> Phone</h6>
+            <p>{$phone}</p>
+          </div>
+          <div class='col-md-6 mb-3'>
+            <h6><i class='bi bi-envelope'></i> Email</h6>
+            <p>{$email}</p>
+          </div>
+        </div>
+        <div class='row'>
+          <div class='col-md-6 mb-3'>
+            <h6><i class='bi bi-briefcase'></i> Occupation</h6>
+            <p>{$occupation}</p>
+          </div>
+          <div class='col-md-6 mb-3'>
+            <h6><i class='bi bi-clock-history'></i> Registered Date</h6>
+            <p>{$formattedDate}</p>
+          </div>
+        </div>
+      </div>
+      <div class='modal-footer'>
+        <button type='button' class='btn btn-secondary' data-bs-dismiss='modal'><i class='bi bi-x-circle'></i> Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+HTML;
+									}
+									
+									// Function to generate edit resident modal
+									function generateEditResidentModal($row) {
+										$id = (int)$row['id']; // Force integer type for security
+										$fullName = htmlspecialchars($row['full_name']);
+										$dob = htmlspecialchars($row['dob']);
+										$nic = htmlspecialchars($row['nic']);
+										$gender = htmlspecialchars($row['gender']);
+										$address = htmlspecialchars($row['address']);
+										$phone = htmlspecialchars($row['phone']);
+										$email = htmlspecialchars($row['email']);
+										$occupation = empty($row['occupation']) ? '' : htmlspecialchars($row['occupation']);
+										
+										// Pre-calculate selected attributes
+										$selectedMale = ($gender === 'Male') ? 'selected' : '';
+										$selectedFemale = ($gender === 'Female') ? 'selected' : '';
+										$selectedOther = ($gender === 'Other') ? 'selected' : '';
+										
+										$modalId = "editModal{$id}";
+										$modalLabelId = "editModalLabel{$id}";
+										
+										return <<<HTML
+<div class='modal fade' id='{$modalId}' tabindex='-1' aria-labelledby='{$modalLabelId}' aria-hidden='true'>
+  <div class='modal-dialog modal-lg'>
+    <div class='modal-content'>
+      <div class='modal-header bg-primary text-white'>
+        <h5 class='modal-title' id='{$modalLabelId}'><i class='bi bi-person-badge'></i> Edit {$fullName}'s Details</h5>
+        <button type='button' class='btn-close' data-bs-dismiss='modal' aria-label='Close'></button>
+      </div>
+      <div class='modal-body'>
+        <form action='' method='POST'>
+          <input type='hidden' name='id' value='{$id}'>
+          <div class='row mb-3'>
+            <div class='col-md-6'>
+              <label for='full_name' class='form-label'>Full Name*</label>
+              <input type='text' class='form-control' id='full_name' name='full_name' value='{$fullName}' required>
+            </div>
+            <div class='col-md-6'>
+              <label for='dob' class='form-label'>Date of Birth*</label>
+              <input type='date' class='form-control' id='dob' name='dob' value='{$dob}' required>
+            </div>
+          </div>
+          <div class='row mb-3'>
+            <div class='col-md-6'>
+              <label for='nic' class='form-label'>NIC*</label>
+              <input type='text' class='form-control' id='nic' name='nic' value='{$nic}' required>
+            </div>
+            <div class='col-md-6'>
+              <label for='gender' class='form-label'>Gender*</label>
+              <select class='form-select' id='gender' name='gender' required>
+                <option value='' disabled>Select Gender</option>
+                <option value='Male' {$selectedMale}>Male</option>
+                <option value='Female' {$selectedFemale}>Female</option>
+                <option value='Other' {$selectedOther}>Other</option>
+              </select>
+            </div>
+          </div>
+          <div class='row mb-3'>
+            <div class='col-12'>
+              <label for='address' class='form-label'>Address*</label>
+              <textarea class='form-control' id='address' name='address' rows='2' required>{$address}</textarea>
+            </div>
+          </div>
+          <div class='row mb-3'>
+            <div class='col-md-6'>
+              <label for='phone' class='form-label'>Phone*</label>
+              <input type='tel' class='form-control' id='phone' name='phone' value='{$phone}' required>
+            </div>
+            <div class='col-md-6'>
+              <label for='email' class='form-label'>Email*</label>
+              <input type='email' class='form-control' id='email' name='email' value='{$email}' required>
+            </div>
+          </div>
+          <div class='row mb-3'>
+            <div class='col-md-6'>
+              <label for='occupation' class='form-label'>Occupation</label>
+              <input type='text' class='form-control' id='occupation' name='occupation' value='{$occupation}'>
+            </div>
+          </div>
+          <div class='d-grid gap-2 d-md-flex justify-content-md-end'>
+            <button type='button' class='btn btn-secondary' data-bs-dismiss='modal'><i class='bi bi-x-circle'></i> Close</button>
+            <button type='submit' class='btn btn-primary'><i class='bi bi-save'></i> Save Changes</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+HTML;
+									}
+									
+									// Retrieve resident data from database with prepared statement
+									$stmt = $conn->prepare("SELECT * FROM residents ORDER BY full_name ASC");
+									$stmt->execute();
+									$result = $stmt->get_result();
+									
+									if ($result->num_rows > 0) {
 										$i = 1;
-										while ($row = mysqli_fetch_assoc($result)) {
-											echo "<tr>";
-											echo "<th scope='row'>" . $i . "</th>";
-											echo "<td>" . htmlspecialchars($row['full_name']) . "</td>";
-											echo "<td>" . htmlspecialchars($row['nic']) . "</td>";
-											echo "<td>" . htmlspecialchars($row['phone']) . "</td>";
-											echo "<td>" . htmlspecialchars($row['email']) . "</td>";
-											echo "<td class='text-center'>
-													<div class='btn-group btn-group-sm' role='group' aria-label='Resident actions'>
-														<button type='button' class='btn btn-info' data-bs-toggle='modal' data-bs-target='#viewModal" . $row['id'] . "' title='View Details'>
-															<i class='bi bi-eye'></i>
-														</button>
-														<button type='button' class='btn btn-primary' title='Edit Resident'>
-															<i class='bi bi-pencil'></i>
-														</button>
-														<button type='button' class='btn btn-danger' title='Delete Resident'>
-															<i class='bi bi-trash'></i>
-														</button>
-													</div>
-												</td>";
-											echo "</tr>";
-											
-											// View Modal for each resident
-											echo "<div class='modal fade' id='viewModal" . $row['id'] . "' tabindex='-1' aria-labelledby='viewModalLabel" . $row['id'] . "' aria-hidden='true'>";
-											echo "<div class='modal-dialog modal-lg'>";
-											echo "<div class='modal-content'>";
-											echo "<div class='modal-header bg-info text-white'>";
-											echo "<h5 class='modal-title' id='viewModalLabel" . $row['id'] . "'><i class='bi bi-person-badge'></i> " . htmlspecialchars($row['full_name']) . "'s Details</h5>";
-											echo "<button type='button' class='btn-close' data-bs-dismiss='modal' aria-label='Close'></button>";
-											echo "</div>";
-											echo "<div class='modal-body'>";
-											echo "<div class='row'>";
-											echo "<div class='col-md-6 mb-3'>";
-											echo "<h6><i class='bi bi-person'></i> Full Name</h6>";
-											echo "<p>" . htmlspecialchars($row['full_name']) . "</p>";
-											echo "</div>";
-											echo "<div class='col-md-6 mb-3'>";
-											echo "<h6><i class='bi bi-calendar-date'></i> Date of Birth</h6>";
-											echo "<p>" . htmlspecialchars($row['dob']) . "</p>";
-											echo "</div>";
-											echo "</div>";
-											echo "<div class='row'>";
-											echo "<div class='col-md-6 mb-3'>";
-											echo "<h6><i class='bi bi-card-text'></i> NIC</h6>";
-											echo "<p>" . htmlspecialchars($row['nic']) . "</p>";
-											echo "</div>";
-											echo "<div class='col-md-6 mb-3'>";
-											echo "<h6><i class='bi bi-gender-ambiguous'></i> Gender</h6>";
-											echo "<p>" . htmlspecialchars($row['gender']) . "</p>";
-											echo "</div>";
-											echo "</div>";
-											echo "<div class='row'>";
-											echo "<div class='col-12 mb-3'>";
-											echo "<h6><i class='bi bi-geo-alt'></i> Address</h6>";
-											echo "<p>" . htmlspecialchars($row['address']) . "</p>";
-											echo "</div>";
-											echo "</div>";
-											echo "<div class='row'>";
-											echo "<div class='col-md-6 mb-3'>";
-											echo "<h6><i class='bi bi-telephone'></i> Phone</h6>";
-											echo "<p>" . htmlspecialchars($row['phone']) . "</p>";
-											echo "</div>";
-											echo "<div class='col-md-6 mb-3'>";
-											echo "<h6><i class='bi bi-envelope'></i> Email</h6>";
-											echo "<p>" . htmlspecialchars($row['email']) . "</p>";
-											echo "</div>";
-											echo "</div>";
-											echo "<div class='row'>";
-											echo "<div class='col-md-6 mb-3'>";
-											echo "<h6><i class='bi bi-briefcase'></i> Occupation</h6>";
-											echo "<p>" . (empty($row['occupation']) ? 'Not specified' : htmlspecialchars($row['occupation'])) . "</p>";
-											echo "</div>";
-											echo "<div class='col-md-6 mb-3'>";
-											echo "<h6><i class='bi bi-clock-history'></i> Registered Date</h6>";
-											echo "<p>" . date('F j, Y', strtotime($row['registered_date'])) . "</p>";
-											echo "</div>";
-											echo "</div>";
-											echo "</div>";
-											echo "<div class='modal-footer'>";
-											echo "<button type='button' class='btn btn-secondary' data-bs-dismiss='modal'><i class='bi bi-x-circle'></i> Close</button>";
-											echo "</div>";
-											echo "</div>";
-											echo "</div>";
-											echo "</div>";
-											
-											$i++;
+										while ($row = $result->fetch_assoc()) {
+											// Generate row and modals
+											echo generateResidentRow($row, $i++);
+											echo generateResidentModal($row);
+											echo generateEditResidentModal($row);
 										}
 									} else {
 										echo "<tr><td colspan='6' class='text-center py-3'><i class='bi bi-exclamation-circle me-2'></i>No residents found.</td></tr>";
@@ -323,6 +483,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 			rows[i].style.display = found ? '' : 'none';
 		}
 	});
+	
+	// Delete resident functionality
+	function deleteResident(id, fullName) {
+		if (confirm(`Are you sure you want to delete ${fullName}'s record?`)) {
+			window.location.href = `delete.php?id=${id}`;
+		}
+	}
 	</script>
 </body>
 
