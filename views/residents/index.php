@@ -25,11 +25,11 @@ require_once 'views/residents/helpers.php';
 </div>
 
 <!-- Residents Table -->
-<div class="card shadow-sm">
+<div class="card shadow-sm border-0">
     <div class="card-body p-0">
         <div class="table-responsive">
-            <table class="table table-hover table-striped mb-0">
-                <thead class="table-light">
+            <table class="table table-hover mb-0">
+                <thead style="background-color: var(--secondary-color);" class="text-white">
                     <tr>
                         <th scope="col">#</th>
                         <th scope="col">Full Name</th>

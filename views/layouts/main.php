@@ -13,6 +13,43 @@
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
     <style>
+        :root {
+            --primary-color:rgb(56, 131, 230);
+            --primary-dark: rgb(33, 105, 201);
+            --secondary-color: #4895ef;
+            --success-color:rgb(24, 175, 92);
+            --info-color:rgb(167, 229, 248);
+            --danger-color: #e63946;
+            --light-color: #f8f9fa;
+            --dark-color: #212529;
+            --navy-color: #192841;
+            --gray-color: #6c757d;
+        }
+        .bg-primary {
+            background-color: var(--primary-color) !important;
+        }
+        .bg-info {
+            background-color: var(--gray-color) !important;
+        }
+        .bg-success {
+            background-color: var(--success-color) !important;
+        }
+        .bg-navy {
+            background-color: var(--navy-color) !important;
+        }
+        .btn-primary {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+        .btn-primary:hover, .btn-primary:focus {
+            background-color: var(--primary-dark);
+            border-color: var(--primary-dark);
+        }
+        .btn-info {
+            background-color: var(--gray-color);
+            border-color: var(--gray-color);
+            color: white;
+        }
         .table th, .table td {
             vertical-align: middle;
         }
@@ -79,7 +116,7 @@
         <?php endif; ?>
     </div>
 
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary mb-4">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-navy mb-4">
         <div class="container">
             <a class="navbar-brand" href="index.php"><i class="bi bi-houses-fill me-2"></i><?= APP_NAME ?></a>
         </div>

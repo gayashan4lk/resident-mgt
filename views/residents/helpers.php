@@ -57,8 +57,8 @@ function generateViewModal($row) {
 <div class='modal fade' id='{$modalId}' tabindex='-1' aria-labelledby='{$modalLabelId}' aria-hidden='true'>
   <div class='modal-dialog modal-lg'>
     <div class='modal-content'>
-      <div class='modal-header bg-info text-white'>
-        <h5 class='modal-title' id='{$modalLabelId}'><i class='bi bi-person-badge'></i> {$fullName}'s Details</h5>
+      <div class='modal-header' style="background-color: var(--gray-color);">
+        <h5 class='modal-title text-white' id='{$modalLabelId}'><i class='bi bi-person-badge'></i> {$fullName}'s Details</h5>
         <button type='button' class='btn-close' data-bs-dismiss='modal' aria-label='Close'></button>
       </div>
       <div class='modal-body'>
@@ -142,8 +142,8 @@ function generateEditModal($row) {
 <div class='modal fade' id='{$modalId}' tabindex='-1' aria-labelledby='{$modalLabelId}' aria-hidden='true'>
   <div class='modal-dialog modal-lg'>
     <div class='modal-content'>
-      <div class='modal-header bg-primary text-white'>
-        <h5 class='modal-title' id='{$modalLabelId}'><i class='bi bi-pencil-square'></i> Edit {$fullName}</h5>
+      <div class='modal-header' style="background-color: var(--primary-color);">
+        <h5 class='modal-title text-white' id='{$modalLabelId}'><i class='bi bi-pencil-square'></i> Edit {$fullName}</h5>
         <button type='button' class='btn-close' data-bs-dismiss='modal' aria-label='Close'></button>
       </div>
       <div class='modal-body'>
