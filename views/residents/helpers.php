@@ -10,6 +10,7 @@ function generateResidentRow($row, $rowNum) {
     $nic = htmlspecialchars($row['nic']);
     $phone = htmlspecialchars($row['phone']);
     $email = htmlspecialchars($row['email']);
+    $address = htmlspecialchars($row['address']);
     $viewModalId = "#viewModal{$id}";
     $editModalId = "#editModal{$id}";
     
@@ -20,6 +21,7 @@ function generateResidentRow($row, $rowNum) {
   <td>{$nic}</td>
   <td>{$phone}</td>
   <td>{$email}</td>
+  <td>{$address}</td>
   <td class='text-center'>
     <div class='btn-group btn-group-sm' role='group' aria-label='Resident actions'>
       <button type='button' class='btn btn-info' data-bs-toggle='modal' data-bs-target='{$viewModalId}' title='View Details'>

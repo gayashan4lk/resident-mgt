@@ -31,7 +31,7 @@ document.addEventListener('DOMContentLoaded', function() {
  */
 function performSearch(searchTerm, resultsElement) {
     // Show loading indicator
-    resultsElement.innerHTML = '<tr><td colspan="6" class="text-center py-3"><i class="bi bi-hourglass-split me-2"></i>Searching...</td></tr>';
+    resultsElement.innerHTML = '<tr><td colspan="7" class="text-center py-3"><i class="bi bi-hourglass-split me-2"></i>Searching...</td></tr>';
     
     // Create AJAX request
     const xhr = new XMLHttpRequest();
@@ -44,16 +44,16 @@ function performSearch(searchTerm, resultsElement) {
                 const response = JSON.parse(this.responseText);
                 displaySearchResults(response.residents, response.modals, resultsElement);
             } catch (e) {
-                resultsElement.innerHTML = '<tr><td colspan="6" class="text-center py-3"><i class="bi bi-exclamation-circle me-2"></i>Error processing results</td></tr>';
+                resultsElement.innerHTML = '<tr><td colspan="7" class="text-center py-3"><i class="bi bi-exclamation-circle me-2"></i>Error processing results</td></tr>';
                 console.error('Error parsing JSON response', e);
             }
         } else {
-            resultsElement.innerHTML = '<tr><td colspan="6" class="text-center py-3"><i class="bi bi-exclamation-circle me-2"></i>Error fetching results</td></tr>';
+            resultsElement.innerHTML = '<tr><td colspan="7" class="text-center py-3"><i class="bi bi-exclamation-circle me-2"></i>Error fetching results</td></tr>';
         }
     };
     
     xhr.onerror = function() {
-        resultsElement.innerHTML = '<tr><td colspan="6" class="text-center py-3"><i class="bi bi-wifi-off me-2"></i>Network error</td></tr>';
+        resultsElement.innerHTML = '<tr><td colspan="7" class="text-center py-3"><i class="bi bi-wifi-off me-2"></i>Network error</td></tr>';
     };
     
     xhr.send();
@@ -64,7 +64,7 @@ function performSearch(searchTerm, resultsElement) {
  */
 function displaySearchResults(residents, modals, resultsElement) {
     if (!residents || residents.length === 0) {
-        resultsElement.innerHTML = '<tr><td colspan="6" class="text-center py-3"><i class="bi bi-search me-2"></i>No residents found</td></tr>';
+        resultsElement.innerHTML = '<tr><td colspan="7" class="text-center py-3"><i class="bi bi-search me-2"></i>No residents found</td></tr>';
         return;
     }
     
@@ -78,6 +78,7 @@ function displaySearchResults(residents, modals, resultsElement) {
             <td>${resident.nic}</td>
             <td>${resident.phone}</td>
             <td>${resident.email}</td>
+            <td>${resident.address}</td>
             <td class="text-center">
                 <div class="btn-group btn-group-sm">
                     <button type="button" class="btn btn-info" data-bs-toggle="modal" data-bs-target="#viewModal${resident.id}"><i class="bi bi-eye"></i></button>

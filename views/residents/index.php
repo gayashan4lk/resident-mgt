@@ -36,6 +36,7 @@ require_once 'views/residents/helpers.php';
                         <th scope="col">NIC</th>
                         <th scope="col">Phone</th>
                         <th scope="col">Email</th>
+                        <th scope="col">Address</th>
                         <th scope="col" class="text-center">Actions</th>
                     </tr>
                 </thead>
@@ -49,7 +50,7 @@ require_once 'views/residents/helpers.php';
                             echo generateEditModal($row);
                         }
                     } else {
-                        echo "<tr><td colspan='6' class='text-center py-3'><i class='bi bi-exclamation-circle me-2'></i>No residents found.</td></tr>";
+                        echo "<tr><td colspan='7' class='text-center py-3'><i class='bi bi-exclamation-circle me-2'></i>No residents found.</td></tr>";
                     }
                     ?>
                 </tbody>
