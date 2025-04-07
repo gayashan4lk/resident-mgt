@@ -3,6 +3,7 @@ require_once 'models/Resident.php';
 
 class ResidentController {
     private $residentModel;
+    private $errors = [];
     
     public function __construct() {
         // Start session if not already started
@@ -66,15 +67,31 @@ class ResidentController {
     
     // Create new resident
     private function create() {
-        // Sanitize and set data
-        $this->residentModel->full_name = $this->sanitizeInput($_POST['full_name']);
-        $this->residentModel->dob = $this->sanitizeInput($_POST['dob']);
-        $this->residentModel->nic = $this->sanitizeInput($_POST['nic']);
-        $this->residentModel->gender = $this->sanitizeInput($_POST['gender']);
-        $this->residentModel->address = $this->sanitizeInput($_POST['address']);
-        $this->residentModel->phone = $this->sanitizeInput($_POST['phone']);
-        $this->residentModel->email = $this->sanitizeInput($_POST['email']);
-        $this->residentModel->occupation = $this->sanitizeInput($_POST['occupation'] ?? '');
+        // Sanitize inputs first
+        $sanitizedData = $this->sanitizeFormData($_POST);
+        
+        // Validate the data
+        if (!$this->validateResidentData($sanitizedData)) {
+            // Set error message with all validation errors as a list
+            $_SESSION['error_message'] = "<ul class='mb-0 ps-3 text-start'>" . 
+                implode('', array_map(function($error) { 
+                    return "<li>$error</li>";
+                }, $this->errors)) . 
+                "</ul>";
+            $_SESSION['form_data'] = $_POST; // Preserve form data for refilling
+            header("Location: index.php");
+            exit();
+        }
+        
+        // Set data
+        $this->residentModel->full_name = $sanitizedData['full_name'];
+        $this->residentModel->dob = $sanitizedData['dob'];
+        $this->residentModel->nic = $sanitizedData['nic'];
+        $this->residentModel->gender = $sanitizedData['gender'];
+        $this->residentModel->address = $sanitizedData['address'];
+        $this->residentModel->phone = $sanitizedData['phone'];
+        $this->residentModel->email = $sanitizedData['email'];
+        $this->residentModel->occupation = $sanitizedData['occupation'] ?? '';
         
         // Create resident
         if ($this->residentModel->create()) {
@@ -94,19 +111,36 @@ class ResidentController {
         
         if ($id === false) {
             $_SESSION['error_message'] = "Invalid resident ID";
-            return;
+            header("Location: index.php");
+            exit();
         }
         
-        // Sanitize and set data
+        // Sanitize inputs first
+        $sanitizedData = $this->sanitizeFormData($_POST);
+        
+        // Validate the data
+        if (!$this->validateResidentData($sanitizedData)) {
+            // Set error message with all validation errors as a list
+            $_SESSION['error_message'] = "<ul class='mb-0 ps-3 text-start'>" . 
+                implode('', array_map(function($error) { 
+                    return "<li>$error</li>";
+                }, $this->errors)) . 
+                "</ul>";
+            $_SESSION['form_data'] = $_POST; // Preserve form data for refilling
+            header("Location: index.php");
+            exit();
+        }
+        
+        // Set data
         $this->residentModel->id = $id;
-        $this->residentModel->full_name = $this->sanitizeInput($_POST['full_name']);
-        $this->residentModel->dob = $this->sanitizeInput($_POST['dob']);
-        $this->residentModel->nic = $this->sanitizeInput($_POST['nic']);
-        $this->residentModel->gender = $this->sanitizeInput($_POST['gender']);
-        $this->residentModel->address = $this->sanitizeInput($_POST['address']);
-        $this->residentModel->phone = $this->sanitizeInput($_POST['phone']);
-        $this->residentModel->email = $this->sanitizeInput($_POST['email']);
-        $this->residentModel->occupation = $this->sanitizeInput($_POST['occupation'] ?? '');
+        $this->residentModel->full_name = $sanitizedData['full_name'];
+        $this->residentModel->dob = $sanitizedData['dob'];
+        $this->residentModel->nic = $sanitizedData['nic'];
+        $this->residentModel->gender = $sanitizedData['gender'];
+        $this->residentModel->address = $sanitizedData['address'];
+        $this->residentModel->phone = $sanitizedData['phone'];
+        $this->residentModel->email = $sanitizedData['email'];
+        $this->residentModel->occupation = $sanitizedData['occupation'] ?? '';
         
         // Update resident
         if ($this->residentModel->update()) {
@@ -140,6 +174,78 @@ class ResidentController {
         
         header("Location: index.php");
         exit();
+    }
+    
+    // Sanitize all form data at once
+    private function sanitizeFormData($data) {
+        $sanitized = [];
+        foreach ($data as $key => $value) {
+            $sanitized[$key] = $this->sanitizeInput($value);
+        }
+        return $sanitized;
+    }
+    
+    // Validate resident data
+    private function validateResidentData($data) {
+        $this->errors = []; // Reset errors array
+        
+        // Full Name validation - at least 3 chars, only letters, spaces, and some special chars
+        if (empty($data['full_name']) || strlen($data['full_name']) < 3) {
+            $this->errors[] = 'Full name must be at least 3 characters long';
+        } elseif (!preg_match('/^[A-Za-zÀ-ÖØ-öø-ÿ .\'\-]+$/', $data['full_name'])) {
+            $this->errors[] = 'Full name contains invalid characters (only letters, spaces, dots, apostrophes and hyphens allowed)';
+        }
+        
+        // Date of Birth validation
+        if (empty($data['dob'])) {
+            $this->errors[] = 'Date of birth is required';
+        } else {
+            $dob = date_create($data['dob']);
+            $now = date_create('now');
+            if (!$dob) {
+                $this->errors[] = 'Invalid date of birth format (use YYYY-MM-DD)';
+            } elseif ($dob > $now) {
+                $this->errors[] = 'Date of birth cannot be in the future';
+            } elseif (date_diff($dob, $now)->y > 120) {
+                $this->errors[] = 'Date of birth seems unrealistic (age > 120 years)';
+            }
+        }
+        
+        // NIC validation (assuming a specific format - adjust as needed)
+        if (empty($data['nic'])) {
+            $this->errors[] = 'NIC is required';
+        } elseif (!preg_match('/^[0-9]{9}[vVxX]$|^[0-9]{12}$/', $data['nic'])) {
+            $this->errors[] = 'NIC format is invalid (must be 9 digits followed by v/V/x/X OR 12 digits)';
+        }
+        
+        // Gender validation
+        if (empty($data['gender'])) {
+            $this->errors[] = 'Gender is required';
+        } elseif (!in_array($data['gender'], ['Male', 'Female', 'Other'])) {
+            $this->errors[] = 'Invalid gender selection (must be Male, Female, or Other)';
+        }
+        
+        // Address validation
+        if (empty($data['address']) || strlen($data['address']) < 5) {
+            $this->errors[] = 'Address is required and must be at least 5 characters long';
+        }
+        
+        // Phone validation
+        if (empty($data['phone'])) {
+            $this->errors[] = 'Phone number is required';
+        } elseif (!preg_match('/^[0-9+\-\s]{7,15}$/', $data['phone'])) {
+            $this->errors[] = 'Phone number format is invalid (must be 7-15 characters with only numbers, +, -, and spaces)';
+        }
+        
+        // Email validation
+        if (empty($data['email'])) {
+            $this->errors[] = 'Email is required';
+        } elseif (!filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
+            $this->errors[] = 'Email format is invalid (example: name@example.com)';
+        }
+        
+        // Return true if no errors
+        return empty($this->errors);
     }
     
     // Sanitize inputs
