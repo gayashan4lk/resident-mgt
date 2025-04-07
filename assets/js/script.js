@@ -2,7 +2,6 @@
  * Resident Management Application JavaScript
  */
 
-// Search functionality
 document.addEventListener('DOMContentLoaded', function() {
     // Search functionality
     const searchInput = document.getElementById('searchInput');
@@ -29,11 +28,45 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }, 5000);
     });
+
+    // Setup delete confirmation modal
+    setupDeleteConfirmation();
 });
 
-// Delete resident confirmation
-function deleteResident(id, fullName) {
-    if (confirm(`Are you sure you want to delete ${fullName}'s record?`)) {
-        window.location.href = `index.php?action=delete&id=${id}`;
-    }
+/**
+ * Initialize delete confirmation modal handlers
+ */
+function setupDeleteConfirmation() {
+    // Get modal elements
+    const deleteModal = document.getElementById('deleteConfirmModal');
+    const confirmDeleteBtn = document.querySelector('.confirm-delete');
+    const residentNameElement = document.querySelector('.resident-name');
+    
+    if (!deleteModal || !confirmDeleteBtn) return;
+    
+    // Create Bootstrap modal instance
+    const modal = new bootstrap.Modal(deleteModal);
+    
+    // Setup event handlers for all delete buttons
+    document.querySelectorAll('a.btn-danger').forEach(btn => {
+        // Skip if it's the confirmation button in the modal
+        if (btn.classList.contains('confirm-delete')) return;
+        
+        // Override the default click behavior
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            // Extract details from the button
+            const href = this.getAttribute('href');
+            const id = href.split('=')[1] || '';
+            const fullName = this.getAttribute('data-name') || 'this resident';
+            
+            // Update modal with resident info
+            residentNameElement.textContent = fullName;
+            confirmDeleteBtn.setAttribute('href', href);
+            
+            // Show the modal
+            modal.show();
+        });
+    });
 }

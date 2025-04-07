@@ -28,7 +28,7 @@ function generateResidentRow($row, $rowNum) {
       <button type='button' class='btn btn-primary' data-bs-toggle='modal' data-bs-target='{$editModalId}' title='Edit Resident'>
         <i class='bi bi-pencil'></i>
       </button>
-      <a href='delete.php?id={$id}' class='btn btn-danger' onclick="return confirm('Are you sure you want to delete {$fullName}?')" title='Delete Resident'>
+      <a href='delete.php?id={$id}' class='btn btn-danger' data-name='{$fullName}' title='Delete Resident'>
         <i class='bi bi-trash'></i>
       </a>
     </div>
