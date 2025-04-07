@@ -1,0 +1,20 @@
+My project is a simple Residential Management App.
+
+Technologies:
+- PHP
+- HTML
+- CSS
+- Bootstrap
+- JavaScript
+- MySQL
+
+High level features:
+- Add resident details
+- View resident details
+- Edit resident details
+- Delete resident details
+
+Database:
+Database name: resident_database
+Tables:
+- residents
