@@ -16,6 +16,9 @@ switch ($action) {
     case 'delete':
         $controller->delete();
         break;
+    case 'search':
+        $controller->search();
+        break;
     case 'index':
     default:
         $controller->index();

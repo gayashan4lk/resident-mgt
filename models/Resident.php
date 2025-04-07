@@ -28,6 +28,32 @@ class Resident {
         return $this->db->query($query);
     }
     
+    // Search residents by multiple fields
+    public function search($searchTerm) {
+        // Sanitize the search term
+        $searchTerm = '%' . $searchTerm . '%';
+        
+        $query = "SELECT * FROM {$this->table} 
+                 WHERE full_name LIKE ? 
+                 OR nic LIKE ? 
+                 OR phone LIKE ? 
+                 OR email LIKE ? 
+                 OR address LIKE ? 
+                 ORDER BY full_name ASC";
+                 
+        $stmt = $this->db->prepare($query);
+        $stmt->bind_param('sssss', 
+            $searchTerm, 
+            $searchTerm, 
+            $searchTerm, 
+            $searchTerm, 
+            $searchTerm
+        );
+        
+        $stmt->execute();
+        return $stmt->get_result();
+    }
+    
     // Get single resident
     public function getById($id) {
         $id = (int) $id; // Sanitize ID

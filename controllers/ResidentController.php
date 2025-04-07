@@ -39,6 +39,47 @@ class ResidentController {
         require_once 'views/layouts/main.php';
     }
     
+    // Handle search requests via AJAX
+    public function search() {
+        // Check if this is an AJAX request
+        if (!isset($_SERVER['HTTP_X_REQUESTED_WITH']) || strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) != 'xmlhttprequest') {
+            echo json_encode(['error' => 'Invalid request']);
+            exit();
+        }
+        
+        // Get search term
+        $searchTerm = isset($_GET['search']) ? $this->sanitizeInput($_GET['search']) : '';
+        
+        // Get search results
+        $result = empty($searchTerm) ? $this->residentModel->getAll() : $this->residentModel->search($searchTerm);
+        
+        // Required for generating modals
+        require_once 'views/residents/helpers.php';
+        
+        // Format results
+        $residents = [];
+        $modals = '';
+        $counter = 1;
+        
+        if ($result->num_rows > 0) {
+            while ($row = $result->fetch_assoc()) {
+                $row['row_number'] = $counter++;
+                $residents[] = $row;
+                
+                // Generate modals for this resident
+                $modals .= generateViewModal($row);
+                $modals .= generateEditModal($row);
+            }
+        }
+        
+        // Return results as JSON
+        echo json_encode([
+            'residents' => $residents,
+            'modals' => $modals
+        ]);
+        exit();
+    }
+    
     // Handle create/update form submissions
     public function save() {
         if ($_SERVER["REQUEST_METHOD"] !== "POST") {
