@@ -166,9 +166,164 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 				</div>
 			</div>
 		</div>
+
+		<div class="row mt-4">
+			<div class="col-md-12">
+				<div class="card">
+					<div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+						<h5 class="mb-0"><i class="bi bi-people"></i> Resident List</h5>
+						<div class="input-group" style="max-width: 300px">
+							<input type="text" id="searchInput" class="form-control" placeholder="Search...">
+							<button class="btn btn-light" type="button"><i class="bi bi-search"></i></button>
+						</div>
+					</div>
+					<div class="card-body">
+						<div class="table-responsive">
+							<table class="table table-striped table-hover">
+								<thead>
+									<tr>
+										<th scope="col" width="5%">#</th>
+										<th scope="col" width="20%">Full Name</th>
+										<th scope="col" width="15%">NIC</th>
+										<th scope="col" width="15%">Phone</th>
+										<th scope="col" width="20%">Email</th>
+										<th scope="col" width="25%">Actions</th>
+									</tr>
+								</thead>
+								<tbody>
+									<?php
+									// Retrieve resident data from database
+									$sql = "SELECT * FROM residents ORDER BY full_name ASC";
+									$result = mysqli_query($conn, $sql);
+									if (mysqli_num_rows($result) > 0) {
+										$i = 1;
+										while ($row = mysqli_fetch_assoc($result)) {
+											echo "<tr>";
+											echo "<th scope='row'>" . $i . "</th>";
+											echo "<td>" . htmlspecialchars($row['full_name']) . "</td>";
+											echo "<td>" . htmlspecialchars($row['nic']) . "</td>";
+											echo "<td>" . htmlspecialchars($row['phone']) . "</td>";
+											echo "<td>" . htmlspecialchars($row['email']) . "</td>";
+											echo "<td class='text-center'>
+													<div class='btn-group btn-group-sm' role='group' aria-label='Resident actions'>
+														<button type='button' class='btn btn-info' data-bs-toggle='modal' data-bs-target='#viewModal" . $row['id'] . "' title='View Details'>
+															<i class='bi bi-eye'></i>
+														</button>
+														<button type='button' class='btn btn-primary' title='Edit Resident'>
+															<i class='bi bi-pencil'></i>
+														</button>
+														<button type='button' class='btn btn-danger' title='Delete Resident'>
+															<i class='bi bi-trash'></i>
+														</button>
+													</div>
+												</td>";
+											echo "</tr>";
+											
+											// View Modal for each resident
+											echo "<div class='modal fade' id='viewModal" . $row['id'] . "' tabindex='-1' aria-labelledby='viewModalLabel" . $row['id'] . "' aria-hidden='true'>";
+											echo "<div class='modal-dialog modal-lg'>";
+											echo "<div class='modal-content'>";
+											echo "<div class='modal-header bg-info text-white'>";
+											echo "<h5 class='modal-title' id='viewModalLabel" . $row['id'] . "'><i class='bi bi-person-badge'></i> " . htmlspecialchars($row['full_name']) . "'s Details</h5>";
+											echo "<button type='button' class='btn-close' data-bs-dismiss='modal' aria-label='Close'></button>";
+											echo "</div>";
+											echo "<div class='modal-body'>";
+											echo "<div class='row'>";
+											echo "<div class='col-md-6 mb-3'>";
+											echo "<h6><i class='bi bi-person'></i> Full Name</h6>";
+											echo "<p>" . htmlspecialchars($row['full_name']) . "</p>";
+											echo "</div>";
+											echo "<div class='col-md-6 mb-3'>";
+											echo "<h6><i class='bi bi-calendar-date'></i> Date of Birth</h6>";
+											echo "<p>" . htmlspecialchars($row['dob']) . "</p>";
+											echo "</div>";
+											echo "</div>";
+											echo "<div class='row'>";
+											echo "<div class='col-md-6 mb-3'>";
+											echo "<h6><i class='bi bi-card-text'></i> NIC</h6>";
+											echo "<p>" . htmlspecialchars($row['nic']) . "</p>";
+											echo "</div>";
+											echo "<div class='col-md-6 mb-3'>";
+											echo "<h6><i class='bi bi-gender-ambiguous'></i> Gender</h6>";
+											echo "<p>" . htmlspecialchars($row['gender']) . "</p>";
+											echo "</div>";
+											echo "</div>";
+											echo "<div class='row'>";
+											echo "<div class='col-12 mb-3'>";
+											echo "<h6><i class='bi bi-geo-alt'></i> Address</h6>";
+											echo "<p>" . htmlspecialchars($row['address']) . "</p>";
+											echo "</div>";
+											echo "</div>";
+											echo "<div class='row'>";
+											echo "<div class='col-md-6 mb-3'>";
+											echo "<h6><i class='bi bi-telephone'></i> Phone</h6>";
+											echo "<p>" . htmlspecialchars($row['phone']) . "</p>";
+											echo "</div>";
+											echo "<div class='col-md-6 mb-3'>";
+											echo "<h6><i class='bi bi-envelope'></i> Email</h6>";
+											echo "<p>" . htmlspecialchars($row['email']) . "</p>";
+											echo "</div>";
+											echo "</div>";
+											echo "<div class='row'>";
+											echo "<div class='col-md-6 mb-3'>";
+											echo "<h6><i class='bi bi-briefcase'></i> Occupation</h6>";
+											echo "<p>" . (empty($row['occupation']) ? 'Not specified' : htmlspecialchars($row['occupation'])) . "</p>";
+											echo "</div>";
+											echo "<div class='col-md-6 mb-3'>";
+											echo "<h6><i class='bi bi-clock-history'></i> Registered Date</h6>";
+											echo "<p>" . date('F j, Y', strtotime($row['registered_date'])) . "</p>";
+											echo "</div>";
+											echo "</div>";
+											echo "</div>";
+											echo "<div class='modal-footer'>";
+											echo "<button type='button' class='btn btn-secondary' data-bs-dismiss='modal'><i class='bi bi-x-circle'></i> Close</button>";
+											echo "</div>";
+											echo "</div>";
+											echo "</div>";
+											echo "</div>";
+											
+											$i++;
+										}
+									} else {
+										echo "<tr><td colspan='6' class='text-center py-3'><i class='bi bi-exclamation-circle me-2'></i>No residents found.</td></tr>";
+									}
+									?>
+								</tbody>
+							</table>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
 	</div>
 
 	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.5/dist/js/bootstrap.bundle.min.js" integrity="sha384-k6d4wzSIapyDyv1kpU366/PK5hCdSbCRGRCMv+eplOQJWyd1fbcAu9OCUj5zNLiq" crossorigin="anonymous"></script>
+	<script>
+	// Simple search functionality
+	document.getElementById('searchInput').addEventListener('keyup', function() {
+		let input = this.value.toLowerCase();
+		let table = document.querySelector('table');
+		let rows = table.getElementsByTagName('tr');
+		
+		for (let i = 1; i < rows.length; i++) { // Skip header row
+			let found = false;
+			let cells = rows[i].getElementsByTagName('td');
+			
+			for (let j = 0; j < cells.length - 1; j++) { // Skip last column (actions)
+				let cell = cells[j];
+				if (cell) {
+					let text = cell.textContent || cell.innerText;
+					if (text.toLowerCase().indexOf(input) > -1) {
+						found = true;
+						break;
+					}
+				}
+			}
+			
+			rows[i].style.display = found ? '' : 'none';
+		}
+	});
+	</script>
 </body>
 
 </html>
