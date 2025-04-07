@@ -1,11 +1,12 @@
 <?php
-require_once 'Database.php';
+require_once 'models/Database.php';
 
 class Resident {
+    // Database props
     private $db;
     private $table = 'residents';
     
-    // Properties
+    // Resident props
     public $id;
     public $full_name;
     public $dob;
@@ -18,31 +19,33 @@ class Resident {
     public $registered_date;
     
     public function __construct() {
-        $this->db = Database::getInstance();
+        $this->db = Database::getInstance()->getConnection();
     }
     
     // Get all residents
     public function getAll() {
-        $sql = "SELECT * FROM {$this->table} ORDER BY full_name ASC";
-        $result = $this->db->query($sql);
-        return $result;
+        $query = "SELECT * FROM {$this->table} ORDER BY full_name ASC";
+        return $this->db->query($query);
     }
     
     // Get single resident
-    public function getSingle($id) {
-        $stmt = $this->db->prepare("SELECT * FROM {$this->table} WHERE id = ?");
+    public function getById($id) {
+        $id = (int) $id; // Sanitize ID
+        $query = "SELECT * FROM {$this->table} WHERE id = ?";
+        $stmt = $this->db->prepare($query);
         $stmt->bind_param('i', $id);
         $stmt->execute();
         $result = $stmt->get_result();
+        
         return $result->fetch_assoc();
     }
     
     // Create resident
     public function create() {
-        $stmt = $this->db->prepare("INSERT INTO {$this->table} 
-                               (full_name, dob, nic, gender, address, phone, email, occupation) 
-                               VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
+        $query = "INSERT INTO {$this->table} (full_name, dob, nic, gender, address, phone, email, occupation) 
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
         
+        $stmt = $this->db->prepare($query);
         $stmt->bind_param('ssssssss', 
             $this->full_name, 
             $this->dob, 
@@ -54,20 +57,17 @@ class Resident {
             $this->occupation
         );
         
-        if($stmt->execute()) {
-            return true;
-        }
-        
-        return false;
+        return $stmt->execute();
     }
     
     // Update resident
     public function update() {
-        $stmt = $this->db->prepare("UPDATE {$this->table} 
-                               SET full_name = ?, dob = ?, nic = ?, gender = ?, 
-                                   address = ?, phone = ?, email = ?, occupation = ? 
-                               WHERE id = ?");
+        $query = "UPDATE {$this->table} 
+                SET full_name = ?, dob = ?, nic = ?, gender = ?, 
+                    address = ?, phone = ?, email = ?, occupation = ? 
+                WHERE id = ?";
         
+        $stmt = $this->db->prepare($query);
         $stmt->bind_param('ssssssssi', 
             $this->full_name, 
             $this->dob, 
@@ -76,26 +76,20 @@ class Resident {
             $this->address, 
             $this->phone, 
             $this->email, 
-            $this->occupation,
+            $this->occupation, 
             $this->id
         );
         
-        if($stmt->execute()) {
-            return true;
-        }
-        
-        return false;
+        return $stmt->execute();
     }
     
     // Delete resident
     public function delete($id) {
-        $stmt = $this->db->prepare("DELETE FROM {$this->table} WHERE id = ?");
+        $id = (int) $id; // Sanitize ID
+        $query = "DELETE FROM {$this->table} WHERE id = ?";
+        $stmt = $this->db->prepare($query);
         $stmt->bind_param('i', $id);
         
-        if($stmt->execute()) {
-            return true;
-        }
-        
-        return false;
+        return $stmt->execute();
     }
 }

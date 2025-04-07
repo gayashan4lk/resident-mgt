@@ -28,9 +28,9 @@ function generateResidentRow($row, $rowNum) {
       <button type='button' class='btn btn-primary' data-bs-toggle='modal' data-bs-target='{$editModalId}' title='Edit Resident'>
         <i class='bi bi-pencil'></i>
       </button>
-      <button type='button' class='btn btn-danger' onclick="deleteResident({$id}, '{$fullName}')" title='Delete Resident'>
+      <a href='delete.php?id={$id}' class='btn btn-danger' onclick="return confirm('Are you sure you want to delete {$fullName}?')" title='Delete Resident'>
         <i class='bi bi-trash'></i>
-      </button>
+      </a>
     </div>
   </td>
 </tr>
@@ -122,38 +122,87 @@ HTML;
 function generateEditModal($row) {
     $id = (int)$row['id'];
     $fullName = htmlspecialchars($row['full_name']);
+    $dob = htmlspecialchars($row['dob']);
+    $nic = htmlspecialchars($row['nic']);
+    $gender = htmlspecialchars($row['gender']);
+    $address = htmlspecialchars($row['address']);
+    $phone = htmlspecialchars($row['phone']);
+    $email = htmlspecialchars($row['email']);
+    $occupation = isset($row['occupation']) ? htmlspecialchars($row['occupation']) : '';
     
     $modalId = "editModal{$id}";
     $modalLabelId = "editModalLabel{$id}";
     
-    // Create the modal HTML structure
-    $modalHtml = <<<HTML
+    // Prepare selected states for gender dropdown
+    $maleSelected = ($gender === 'Male') ? 'selected' : '';
+    $femaleSelected = ($gender === 'Female') ? 'selected' : '';
+    $otherSelected = ($gender === 'Other') ? 'selected' : '';
+    
+    $html = <<<HTML
 <div class='modal fade' id='{$modalId}' tabindex='-1' aria-labelledby='{$modalLabelId}' aria-hidden='true'>
   <div class='modal-dialog modal-lg'>
     <div class='modal-content'>
       <div class='modal-header bg-primary text-white'>
-        <h5 class='modal-title' id='{$modalLabelId}'><i class='bi bi-person-badge'></i> Edit {$fullName}'s Details</h5>
+        <h5 class='modal-title' id='{$modalLabelId}'><i class='bi bi-pencil-square'></i> Edit {$fullName}</h5>
         <button type='button' class='btn-close' data-bs-dismiss='modal' aria-label='Close'></button>
       </div>
       <div class='modal-body'>
         <form action='index.php?action=save' method='POST'>
           <input type='hidden' name='id' value='{$id}'>
-HTML;
-    
-    // Store the current row data temporarily
-    $GLOBALS['current_resident'] = $row;
-    
-    // Capture the form by starting output buffer
-    ob_start();
-    $resident = $row; // Make row data available to the form
-    include 'views/residents/form.php';
-    $form = ob_get_clean();
-    
-    // Add the form to the modal HTML
-    $modalHtml .= $form;
-    
-    // Finish the modal HTML
-    $modalHtml .= <<<HTML
+          <input type='hidden' name='form_token' value='{$_SESSION['form_token']}'>
+          
+          <div class="row mb-3">
+            <div class="col-md-6">
+              <label for="full_name_{$id}" class="form-label">Full Name*</label>
+              <input type="text" class="form-control" id="full_name_{$id}" name="full_name" value="{$fullName}" required>
+            </div>
+            <div class="col-md-6">
+              <label for="dob_{$id}" class="form-label">Date of Birth*</label>
+              <input type="date" class="form-control" id="dob_{$id}" name="dob" value="{$dob}" required>
+            </div>
+          </div>
+          
+          <div class="row mb-3">
+            <div class="col-md-6">
+              <label for="nic_{$id}" class="form-label">NIC*</label>
+              <input type="text" class="form-control" id="nic_{$id}" name="nic" value="{$nic}" required>
+            </div>
+            <div class="col-md-6">
+              <label for="gender_{$id}" class="form-label">Gender*</label>
+              <select class="form-select" id="gender_{$id}" name="gender" required>
+                <option value="" disabled>Select Gender</option>
+                <option value="Male" {$maleSelected}>Male</option>
+                <option value="Female" {$femaleSelected}>Female</option>
+                <option value="Other" {$otherSelected}>Other</option>
+              </select>
+            </div>
+          </div>
+          
+          <div class="row mb-3">
+            <div class="col-12">
+              <label for="address_{$id}" class="form-label">Address*</label>
+              <textarea class="form-control" id="address_{$id}" name="address" rows="3" required>{$address}</textarea>
+            </div>
+          </div>
+          
+          <div class="row mb-3">
+            <div class="col-md-6">
+              <label for="phone_{$id}" class="form-label">Phone*</label>
+              <input type="text" class="form-control" id="phone_{$id}" name="phone" value="{$phone}" required>
+            </div>
+            <div class="col-md-6">
+              <label for="email_{$id}" class="form-label">Email*</label>
+              <input type="email" class="form-control" id="email_{$id}" name="email" value="{$email}" required>
+            </div>
+          </div>
+          
+          <div class="row mb-3">
+            <div class="col-md-6">
+              <label for="occupation_{$id}" class="form-label">Occupation</label>
+              <input type="text" class="form-control" id="occupation_{$id}" name="occupation" value="{$occupation}">
+            </div>
+          </div>
+
           <div class='d-grid gap-2 d-md-flex justify-content-md-end'>
             <button type='button' class='btn btn-secondary' data-bs-dismiss='modal'><i class='bi bi-x-circle'></i> Close</button>
             <button type='submit' class='btn btn-primary'><i class='bi bi-save'></i> Save Changes</button>
@@ -165,5 +214,5 @@ HTML;
 </div>
 HTML;
     
-    return $modalHtml;
+    return $html;
 }

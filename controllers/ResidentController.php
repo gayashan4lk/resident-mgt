@@ -31,8 +31,11 @@ class ResidentController {
             $_SESSION['form_token'] = md5(uniqid(mt_rand(), true));
         }
         
-        // Load view
-        require_once 'views/residents/index.php';
+        // Set the content to render within the layout
+        $content = 'views/residents/index.php';
+        
+        // Load the main layout, which will include the content
+        require_once 'views/layouts/main.php';
     }
     
     // Handle create/update form submissions

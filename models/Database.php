@@ -4,7 +4,8 @@ class Database {
     private $conn;
     
     private function __construct() {
-        require_once 'config/config.php';
+        // Make sure we're including the config file with the correct path
+        require_once dirname(__DIR__) . '/config/config.php';
         
         $this->conn = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
         

@@ -7,5 +7,6 @@ define('DB_USER', 'root');
 define('DB_PASS', '');
 define('DB_NAME', 'resident_database');
 
-// URL root for links
+// Application constants
 define('ROOT_URL', '/resident-mgt/');
+define('APP_NAME', 'Resident Management');
